@@ -1,6 +1,3 @@
-git add apt.txt
-git commit -m "Agrega dependencias del sistema para pillow"
-git push origin main
 libjpeg-dev
 zlib1g-dev
 libfreetype6-dev
