@@ -1,9 +1,1 @@
-git add runtime.txt
-git commit -m "Agrega runtime.txt para especificar versión de Python"
-git push origin main
-git add requirements.txt apt.txt
-git commit -m "Actualiza dependencias y agrega apt.txt"
-git push origin main
-git add requirements.txt
-git commit -m "Actualiza pip y corrige dependencias"
-git push origin main
+python-3.9
