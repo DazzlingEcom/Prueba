@@ -1,44 +1,49 @@
-
 import PyPDF2
+import re
+from collections import defaultdict
+from datetime import datetime
+import streamlit as st
 
-# Abre el archivo PDF
-with open('MercadoPago.pdf', 'rb') as file:
-    reader = PyPDF2.PdfReader(file)
-    
-    # Lee el texto de cada página
+# Título de la aplicación
+st.title("Procesador de PDFs para Ventas")
+
+# Subida de archivo PDF
+uploaded_file = st.file_uploader("Sube un archivo PDF", type="pdf")
+
+if uploaded_file is not None:
+    # Procesar el archivo PDF
+    reader = PyPDF2.PdfReader(uploaded_file)
     text = ""
     for page_num in range(len(reader.pages)):
         page = reader.pages[page_num]
         text += page.extract_text()
 
-    # Imprime el texto extraído
-    print(text)
-# Datos de ventas: Una lista de tuplas (fecha, valor)
-ventas = [
-    ("07-11-2024", 72.89283),
-    ("07-11-2024", 27.71220),
-    ("07-11-2024", 30.97245),
-    ("07-11-2024", 37.42704),
-    ("08-11-2024", 36.13604),
-    ("08-11-2024", 34.32924),
-    ("09-11-2024", 45.61855),
-    ("09-11-2024", 81.88274),
-    # Agrega más datos según sea necesario
-]
+    # Limpieza del texto
+    text = re.sub(r'\s+', ' ', text)
 
-# Crear un diccionario para almacenar las sumas de ventas por fecha
-ventas_por_fecha = {}
+    # Patrón para capturar fechas y valores
+    pattern = r"(\d{2}-\d{2}-\d{4}).*?\$(\d[\d.,]*)\s*\$([-\d.,]*)\s*\$([-\d.,]*)"
+    matches = re.findall(pattern, text)
 
-# Recorremos la lista de ventas
-for fecha, valor in ventas:
-    # Si la fecha ya existe en el diccionario, sumamos el valor a la venta existente
-    if fecha in ventas_por_fecha:
-        ventas_por_fecha[fecha] += valor
+    # Procesar los datos
+    ventas_por_fecha = defaultdict(float)
+    for match in matches:
+        fecha = match[0]
+        valor_neto = match[3]  # Último valor como valor neto
+        try:
+            valor_limpio = valor_neto.replace('.', '').replace(',', '.').replace('$', '')
+            ventas_por_fecha[fecha] += float(valor_limpio)
+        except ValueError:
+            continue
+
+    # Ordenar las ventas por fecha
+    sorted_ventas = sorted(ventas_por_fecha.items(), key=lambda x: datetime.strptime(x[0], '%d-%m-%Y'))
+
+    # Mostrar los resultados
+    st.subheader("Resultados")
+    if sorted_ventas:
+        st.write("Ventas totales por fecha:")
+        for fecha, total in sorted_ventas:
+            st.write(f"Fecha: {fecha} - Total ventas netas: ${total:,.2f}")
     else:
-        # Si no existe, creamos una nueva entrada con el valor de la venta
-        ventas_por_fecha[fecha] = valor
-
-# Imprimir los resultados
-for fecha, total_ventas in ventas_por_fecha.items():
-    print(f"Fecha: {fecha} - Total de ventas: ${total_ventas:.2f}")
-
+        st.write("No se encontraron datos en el archivo PDF.")
