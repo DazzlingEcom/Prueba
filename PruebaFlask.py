@@ -2,7 +2,7 @@
 import PyPDF2
 
 # Abre el archivo PDF
-with open('/Users/franciscoandreudegasperi/Downloads/MercadoPago.pdf', 'rb') as file:
+with open('MercadoPago.pdf', 'rb') as file:
     reader = PyPDF2.PdfReader(file)
     
     # Lee el texto de cada página
